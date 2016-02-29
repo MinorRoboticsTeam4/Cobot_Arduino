@@ -1,0 +1,90 @@
+#include <Servo.h>
+
+Servo servoDispenser; 
+int servoDispenserPin = 10;
+
+Servo servoDropCatcher; 
+int servoDropCatcherPin = 12;
+
+int servoChoice = -1;
+
+int dispenser_lastdegree = 0;
+int dropcatcher_lastdegree = 0;
+
+
+int aprintf(char *str, ...) {
+	int i, j, count = 0;
+
+	va_list argv;
+	va_start(argv, str);
+	for(i = 0, j = 0; str[i] != '\0'; i++) {
+		if (str[i] == '%') {
+			count++;
+
+			Serial.write(reinterpret_cast<const uint8_t*>(str+j), i-j);
+
+			switch (str[++i]) {
+				case 'd': Serial.print(va_arg(argv, int));
+					break;
+				case 'l': Serial.print(va_arg(argv, long));
+					break;
+				case 'f': Serial.print(va_arg(argv, double));
+					break;
+				case 'c': Serial.print((char) va_arg(argv, int));
+					break;
+				case 's': Serial.print(va_arg(argv, char *));
+					break;
+				case '%': Serial.print("%");
+					break;
+				default:;
+			};
+
+			j = i+1;
+		}
+	};
+	va_end(argv);
+
+	if(i > j) {
+		Serial.write(reinterpret_cast<const uint8_t*>(str+j), i-j);
+	}
+
+	return count;
+}
+
+void setup() {
+  servoDispenser.attach(servoDispenserPin);  
+  servoDropCatcher.attach(servoDropCatcherPin);
+  
+  Serial.begin(9600);
+
+}
+
+void displayMenu(){
+  Serial.println("Servo value tester");
+  Serial.println("Usage: first type in the servo, then degrees");
+  Serial.println("Choose (1) for servo of dispenser");
+  Serial.println("Choose (2) for servo of drop catcher");
+}
+
+void loop() {
+
+  if(Serial.available() > 0){
+    servoChoice = Serial.parseInt();
+    int degrees = Serial.parseInt();
+    switch(servoChoice){
+      case 1:
+         aprintf("[Dispenser] Turning %d degrees",(degrees-dispenser_lastdegree));
+         dispenser_lastdegree = degrees;
+         servoDispenser.write(degrees);
+         break;
+      case 2:
+         aprintf("[Drop catcher] Turning %d degrees",(degrees-dropcatcher_lastdegree));
+         dropcatcher_lastdegree = degrees;
+         servoDropCatcher.write(degrees);
+         break;
+      default: displayMenu(); break;  
+
+    }
+  }
+
+}

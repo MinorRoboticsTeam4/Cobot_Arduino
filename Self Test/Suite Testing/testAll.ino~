@@ -1,0 +1,197 @@
+
+void menuMain(){
+  Serial.println("Self Test Main Menu:");
+  Serial.println("[1] Coffee System");
+  Serial.println("[2] Components");
+
+  Serial.println("Choose an option: ");
+
+  //Wait for input
+  while(1){
+    if(Serial.available()){
+      int choice = Serial.parseInt();
+        switch(choice){
+          case 1: coffeeSystemMenu();
+          case 2: componentMenu();
+          default: break;
+        }
+      break;
+    }
+  }
+
+  
+}
+
+void coffeeSystemMenu(){
+  Serial.println("Self Test Coffee System Menu:");
+  Serial.println("[1] CoffeeMachine");
+  Serial.println("[2] CupDispenser");
+  Serial.println("[3] TurningWheel");
+  Serial.println("[4] DropCatcher");
+  Serial.println("[5] PresetTestAll");
+  Serial.println("[6] Back");
+
+  Serial.println("Choose an option: ");
+
+  //Wait for input
+  while(1){
+    if(Serial.available()){
+      int choice = Serial.parseInt();
+        switch(choice){
+          case 1: break;
+          case 2: break;
+          case 3: break;
+          case 4: break;
+          case 5: break;
+          case 6: menuMain();
+          default: break;
+        }
+      break;
+    }
+  }
+
+}
+
+void componentMenu(){
+  Serial.println("Self Test Components Menu:");
+  Serial.println("[1] Actuators");
+  Serial.println("[2] ArduinoBoard");
+  Serial.println("[3] NFC");
+  Serial.println("[4] Sensors");
+  Serial.println("[5] PresetTestAll");
+  Serial.println("[6] Back");
+
+  Serial.println("Choose an option: ");
+
+  //Wait for input
+  while(1){
+    if(Serial.available()){
+      int choice = Serial.parseInt();
+        switch(choice){
+          case 1: actuatorMenu();
+          case 2: arduinoBoardMenu();
+          case 3: nfcMenu();
+          case 4: sensorMenu();
+          case 5: break;
+          case 6: menuMain();
+          default: componentMenu();
+        }
+      break;
+    }
+  }
+}
+
+void actuatorMenu(){
+  Serial.println("Self Test Actuator Menu:");
+  Serial.println("[1] Relais");
+  Serial.println("[2] Servo");
+  Serial.println("[3] Stepper");
+  Serial.println("[4] PresetTestAll");
+  Serial.println("[5] Back");
+
+  Serial.println("Choose an option: ");
+
+  //Wait for input
+  while(1){
+    if(Serial.available()){
+      int choice = Serial.parseInt();
+        switch(choice){
+          case 1: break;
+          case 2: break;
+          case 3: break;
+          case 4: break;
+          case 5: componentMenu();
+          default: actuatorMenu();
+        }
+      break;
+    }
+  }
+}
+
+void arduinoBoardMenu(){
+  Serial.println("Self Test ArduinoBoard Menu:");
+  Serial.println("[1] Pins");
+  Serial.println("[2] onBoardLED");
+  Serial.println("[3] PresetTestAll");
+  Serial.println("[4] Back");
+
+  Serial.println("Choose an option: ");
+
+  //Wait for input
+  while(1){
+    if(Serial.available()){
+      int choice = Serial.parseInt();
+        switch(choice){
+          case 1: break;
+          case 2: break;
+          case 3: break;
+          case 4: componentMenu();
+          default: arduinoBoardMenu();
+        }
+      break;
+    }
+  }
+}
+
+void nfcMenu(){
+  Serial.println("Self Test NFC Menu:");
+  Serial.println("[1] read nfc card");
+  Serial.println("[2] Back");
+
+  Serial.println("Choose an option: ");
+
+  //Wait for input
+  while(1){
+    if(Serial.available()){
+      int choice = Serial.parseInt();
+        switch(choice){
+          case 1: break;
+          case 2: componentMenu();
+          default: nfcMenu();
+        }
+      break;
+    }
+  }
+}
+
+void sensorMenu(){
+  Serial.println("Self Test Sensor Menu:");
+  Serial.println("[1] Battery");
+  Serial.println("[2] BumperSwitch");
+  Serial.println("[3] Light");
+  Serial.println("[4] Ultrasoon");
+  Serial.println("[5] PresetTestAll");
+  Serial.println("[6] Back");
+
+  Serial.println("Choose an option: ");
+
+  //Wait for input
+  while(1){
+    if(Serial.available()){
+      int choice = Serial.parseInt();
+        switch(choice){
+          case 1: break;
+          case 2: break;
+          case 3: break;
+          case 4: break;
+          case 5: break;
+          case 6: componentMenu();
+          default: sensorMenu();
+        }
+      break;
+    }
+  }
+}
+
+void setup(){
+  Serial.begin(115200);
+
+}
+
+
+void loop(){
+  menuMain();
+
+
+
+}

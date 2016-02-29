@@ -1,0 +1,55 @@
+int relais[] = {39,41,42,43,44,45,46,47,48,49};
+
+void printDigital(int val){
+  if(val){
+    Serial.print("HIGH");
+  }else{
+    Serial.print("LOW ");
+  }
+
+}
+
+void setup() {
+  Serial.begin(9600);
+  for(int i=0;i<10;++i){
+    pinMode(relais[i], OUTPUT);
+    digitalWrite(relais[i], HIGH);
+  }
+
+  Serial.println("Begin Test Relais");
+
+}
+
+void displayTable(){
+  Serial.println("-----------");
+  Serial.println("Relais 1 | Relais 2 | Relais 3 | Relais 4 | Relais 5");  
+  printDigital(digitalRead(relais[0]));Serial.print("       ");
+  printDigital(digitalRead(relais[1]));Serial.print("       ");
+  printDigital(digitalRead(relais[2]));Serial.print("       ");
+  printDigital(digitalRead(relais[3]));Serial.print("       ");
+  printDigital(digitalRead(relais[4]));Serial.print("       \r\n");
+  Serial.println("Relais 6 | Relais 7 | Relais 8 | Relais 9 | Relais 10");
+  printDigital(digitalRead(relais[5]));Serial.print("       ");
+  printDigital(digitalRead(relais[6]));Serial.print("       ");
+  printDigital(digitalRead(relais[7]));Serial.print("       ");
+  printDigital(digitalRead(relais[8]));Serial.print("       ");
+  printDigital(digitalRead(relais[9]));Serial.print("       \r\n");
+}
+
+void loop() {
+  delay(3000);
+  digitalWrite(relais[0],LOW);
+  displayTable();
+  delay(1000);
+
+  for(int i=0;i<9;++i){
+    digitalWrite(relais[i],HIGH);
+    digitalWrite(relais[i+1],LOW);  
+    displayTable();
+    delay(1000);
+  }
+
+  digitalWrite(relais[9],HIGH);  
+  displayTable();
+
+}

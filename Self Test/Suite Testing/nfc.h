@@ -1,0 +1,51 @@
+#include <PN532.h>
+
+#define MISO 50 // Master-in Slave-out
+#define MOSI 51 // Master-out Slave-in
+#define SCK 52  
+#define SS 53 // Version-Firmware
+
+PN532 nfc(SCK, MISO, MOSI, SS);
+
+void testNFC(){
+  nfc.begin();
+  uint32_t versiondata = nfc.getFirmwareVersion();
+  if (! versiondata) {
+    Serial.print("Didn't find PN53x board");
+    return;
+   }
+   
+  // Got ok data, print it out!
+  Serial.print("Found chip PN5"); Serial.println
+  ((versiondata>>24) & 0xFF, HEX);
+   Serial.print("Firmware ver. "); Serial.print
+  ((versiondata>>16) & 0xFF, DEC);
+  Serial.print('.'); Serial.println((versiondata>>8) &
+  0xFF, DEC);
+  Serial.print("Supports "); Serial.println(versiondata &
+  0xFF, HEX);
+
+  // configure board to read RFID tags and cards
+  nfc.SAMConfig();
+
+  Serial.println("Please, hold the tag against the reader");
+  int startTime = millis();
+  int elapsedTime = 0;
+
+  while(elapsedTime < 5000){
+    uint32_t id;
+    // look for MiFare type cards
+    id = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A);
+    if (id != 0) {
+      Serial.print("Read card #"); Serial.println(id);
+      return;
+    }
+    elapsedTime = millis() - startTime;
+  }
+
+  Serial.println("Failed to read a card within the test time");
+
+  Serial.println("Finished Test");
+}
+
+

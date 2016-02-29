@@ -1,0 +1,8 @@
+De Driver heeft een fault pin die LOW is als de H-bridge uitgeschakeld is door overvoltage of overheating.
+Gebruiken als debugging??
+
+Het gebruik van de "Home feature" op de stepper driver?
+http://electronics.stackexchange.com/questions/149377/what-is-the-home-feature-of-the-stepper-motor-driver-ic-drv8811
+
+Check de on board potmeter voor current limiting (zie https://www.pololu.com/product/2132)
+

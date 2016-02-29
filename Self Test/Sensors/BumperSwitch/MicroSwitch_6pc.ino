@@ -1,0 +1,43 @@
+int buttonPin[] = {22, 23, 24, 25, 27, 29};     // the number of the pushbutton pins
+int buttonState[6];                             // variable for reading the pushbuttons status
+
+void setup() {
+  // initialize the pushbutton pins as an input:
+  pinMode(buttonPin[0], INPUT);
+  pinMode(buttonPin[1], INPUT);
+  pinMode(buttonPin[2], INPUT);
+  pinMode(buttonPin[3], INPUT);
+  pinMode(buttonPin[4], INPUT);
+  pinMode(buttonPin[5], INPUT);
+}
+
+void printDigital(int val){
+  if(val){
+    Serial.print("HIGH");
+  }else{
+    Serial.print("LOW ");
+  }
+
+}
+
+void loop() {
+  int i = 0;
+  // read the state of the pushbutton value:
+  for(i=0; i<6; i++){
+    buttonState[i] = digitalRead(buttonPin[i]);
+  }
+
+  Serial.println("----------");
+  Serial.println("Switch 1 | Switch 2 | Switch 3");
+  printDigital(buttonState[0]);Serial.print("       ");
+  printDigital(buttonState[1]);Serial.print("       ");
+  printDigital(buttonState[2]);Serial.print("       \r\n");
+  Serial.println("Switch 4 | Switch 5 | Switch 6");
+  printDigital(buttonState[3]);Serial.print("       ");
+  printDigital(buttonState[4]);Serial.print("       ");
+  printDigital(buttonState[5]);Serial.print("       \r\n");
+
+  delay(1000);
+  
+
+}

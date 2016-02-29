@@ -1,0 +1,41 @@
+#include <Servo.h>
+
+Servo servo; 
+int servoPin = 10;
+
+int isChoiceMade;
+int lastDegrees;
+
+void setup() {
+  myservo.attach(10);  
+  Serial.begin(9600);
+  isChoiceMade = 1;
+  lastDegrees = 0;
+}
+
+void displayMenu(){
+  Serial.println("Enter amount of degrees(whole numbers && > 0) servo must turn: ");
+}
+
+
+void loop() {
+
+  if(isChoiceMade == 1){
+    showMenu();
+    isChoiceMade = 0;
+  }
+
+ while(Serial.available() > 0){
+    int degrees = Serial.parseInt();
+    if(degrees == 0){
+      Serial.println("Character is invalid");
+    }else{
+      isChoiceMade = 1;
+      Serial.println("The servo should turn %d degrees.",(degrees-lastDegrees));
+      servo.write(degrees);
+      lastDegrees = degrees;
+    }
+ 
+  }
+
+}

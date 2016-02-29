@@ -1,0 +1,585 @@
+
+////////////Common Functions and Includes////////////
+#include <Servo.h>
+#include <AccelStepper.h>
+
+void printDigital(int val){
+  if(val){
+    Serial.print("HIGH");
+  }else{
+    Serial.print("LOW ");
+  }
+
+}
+
+#define ENABLEPIN 31
+#define RESETPIN 33
+
+void driverOn(){
+ digitalWrite(ENABLEPIN, LOW);
+}
+
+void driverOff(){
+ digitalWrite(ENABLEPIN, HIGH);
+}
+
+void driverReset(){
+ digitalWrite(RESETPIN, LOW);
+ delay(1000);
+ digitalWrite(RESETPIN, HIGH);
+}
+
+/////////////////////////////////////////////////////
+
+#include <Servo.h>
+
+
+
+int relais[] = {39,41,42,43,44,45,46,47,48,49};
+
+void displayRelaisTable(){
+  Serial.println("-----------");
+  Serial.println("Relais 1 | Relais 2 | Relais 3 | Relais 4 | Relais 5");  
+  printDigital(digitalRead(relais[0]));Serial.print("       ");
+  printDigital(digitalRead(relais[1]));Serial.print("       ");
+  printDigital(digitalRead(relais[2]));Serial.print("       ");
+  printDigital(digitalRead(relais[3]));Serial.print("       ");
+  printDigital(digitalRead(relais[4]));Serial.print("       \r\n");
+  Serial.println("Relais 6 | Relais 7 | Relais 8 | Relais 9 | Relais 10");
+  printDigital(digitalRead(relais[5]));Serial.print("       ");
+  printDigital(digitalRead(relais[6]));Serial.print("       ");
+  printDigital(digitalRead(relais[7]));Serial.print("       ");
+  printDigital(digitalRead(relais[8]));Serial.print("       ");
+  printDigital(digitalRead(relais[9]));Serial.print("       \r\n");
+}
+
+void testRelais(){
+
+  for(int i=0;i<10;++i){
+    pinMode(relais[i], OUTPUT);
+    digitalWrite(relais[i], HIGH);
+  }
+
+  Serial.println("Begin Test Relais");
+
+  digitalWrite(relais[0],LOW);
+  displayRelaisTable();
+  delay(1000);
+
+  for(int i=0;i<9;++i){
+    digitalWrite(relais[i],HIGH);
+    digitalWrite(relais[i+1],LOW);  
+    displayRelaisTable();
+    delay(1000);
+  }
+
+  digitalWrite(relais[9],HIGH);  
+  displayRelaisTable();
+
+  Serial.println("Finished Test");
+}
+
+void sweep(Servo servo,int sweep){
+
+  int pos = 0;
+
+  for (; pos <= sweep; pos += 1) { 
+    servo.write(pos);             
+    delay(15);                      
+  }
+  for (pos = sweep; pos >= 0; pos -= 1) {
+    servo.write(pos);              
+    delay(15);                       
+  }
+
+  Serial.println("Done");
+}
+
+void testServo(){
+  Servo servoDispenser; 
+  int servoDispenserPin = 10;
+
+  Servo servoDropCatcher; 
+  int servoDropCatcherPin = 12;
+
+  servoDispenser.attach(servoDispenserPin);  
+  servoDropCatcher.attach(servoDropCatcherPin); 
+
+  Serial.println("Sweeping dispenser servo");
+  sweep(servoDispenser,90);
+
+  Serial.println("Sweeping drop catcher servo");
+  sweep(servoDropCatcher,90);
+
+  Serial.println("Finished Test");
+
+}
+
+#define resetPin 33  // reset voor driver
+#define enablePin 31 // enable voor driver
+
+#define STEPDIVIDER 1/32    //Specifies amount of steps before a full step (1 , 1/2, 1/4, 1/8, 1/16, 1/32)
+#define STEPS 200           //Steps of the Stepper motor for one full rotation
+
+#define DEGREES (float)(STEPS/STEPDIVIDER)/360
+
+int directionPin = 35;      // richting
+int stepperPin = 11;        // stap
+
+void steps(boolean dir,int steps){
+ digitalWrite(directionPin,dir);
+ delay(50);
+ for(int i=0;i<steps;i++){
+   digitalWrite(stepperPin, HIGH);
+   delayMicroseconds(800);
+   digitalWrite(stepperPin, LOW);
+   delayMicroseconds(800);
+ }
+}
+
+void testStepper(){
+ pinMode(directionPin, OUTPUT);
+ pinMode(stepperPin, OUTPUT);
+
+ pinMode(resetPin, OUTPUT);
+ pinMode(enablePin, OUTPUT);
+
+ driverReset();
+ driverOn();
+  
+ steps(true,180*DEGREES);
+
+ driverOff();
+
+  Serial.println("Finished Test");
+
+}
+#include <PN532.h>
+
+#define MISO 50 // Master-in Slave-out
+#define MOSI 51 // Master-out Slave-in
+#define SCK 52  
+#define SS 53 // Version-Firmware
+
+PN532 nfc(SCK, MISO, MOSI, SS);
+
+void testNFC(){
+  nfc.begin();
+  uint32_t versiondata = nfc.getFirmwareVersion();
+  if (! versiondata) {
+    Serial.print("Didn't find PN53x board");
+    return;
+   }
+   
+  // Got ok data, print it out!
+  Serial.print("Found chip PN5"); Serial.println
+  ((versiondata>>24) & 0xFF, HEX);
+   Serial.print("Firmware ver. "); Serial.print
+  ((versiondata>>16) & 0xFF, DEC);
+  Serial.print('.'); Serial.println((versiondata>>8) &
+  0xFF, DEC);
+  Serial.print("Supports "); Serial.println(versiondata &
+  0xFF, HEX);
+
+  // configure board to read RFID tags and cards
+  nfc.SAMConfig();
+
+  Serial.println("Please, hold the tag against the reader");
+  int startTime = millis();
+  int elapsedTime = 0;
+
+  while(elapsedTime < 5000){
+    uint32_t id;
+    // look for MiFare type cards
+    id = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A);
+    if (id != 0) {
+      Serial.print("Read card #"); Serial.println(id);
+      return;
+    }
+    elapsedTime = millis() - startTime;
+  }
+
+  Serial.println("Failed to read a card within the test time");
+
+  Serial.println("Finished Test");
+}
+
+
+
+void testBattery(){
+  int refVcc = 12.0;      // referentiespanning
+  float corVal = 1.297;     // correctiefactor voor transformatie 12 naar 5 volt.
+  float Vcc;                // accuspanning
+  int Vcc_charge = 12.24; // oplaadspanning
+  int Vcc_stop = 11.96;   // kritieke spanning
+
+  float sensorValue = analogRead(A6);
+  
+  Serial.print("Analog value: ");
+  Serial.println(sensorValue);
+
+  Vcc = sensorValue*refVcc*corVal/1024;
+  
+  Serial.print("Battery voltage: ");
+  Serial.print(Vcc);
+  Serial.print("V +\r\n");
+
+  if(Vcc > Vcc_charge){
+    Serial.println("Battery OK");
+  }
+  else if(Vcc <= Vcc_charge && Vcc >= Vcc_stop){
+    Serial.println("Battery Low");
+  }
+  else {
+    Serial.println("Battery Critical");
+  }
+  Serial.println();
+
+  Serial.println("Finished Test");
+}
+
+void testBumperswitch(){
+  int buttonPin[] = {22, 23, 24, 25, 27, 29};     // the number of the pushbutton pins
+
+  pinMode(buttonPin[0], INPUT);
+  pinMode(buttonPin[1], INPUT);
+  pinMode(buttonPin[2], INPUT);
+  pinMode(buttonPin[3], INPUT);
+  pinMode(buttonPin[4], INPUT);
+  pinMode(buttonPin[5], INPUT);
+
+  
+  for(int i=0;i<6;++i){
+    Serial.print("Please, push switch: ");Serial.print(i+1);Serial.print("\r\n");
+
+    int startTime = millis();
+    int elapsedTime = 0;
+    boolean detected = false;
+    while(elapsedTime < 5000){
+      if(digitalRead(buttonPin[i]) == HIGH){
+        Serial.println("Switch detected");
+        detected = true;
+        break;
+      }
+       elapsedTime = millis() - startTime;    
+    }
+
+    if(detected == false){
+      Serial.println("Failed to detect switch");    
+    }
+
+  }
+
+  Serial.println("Finished Test");
+ 
+}
+
+void testLight(){
+
+int ADC_stabilize = 5;
+int lightThreshold = 750;
+boolean somethingAbove[4] = {false,false,false,false};
+
+ for(int i=0;i<4;++i){
+    Serial.println("Make sure nothing is above light sensors: ");
+
+    int startTime = millis();
+    int elapsedTime = 0;
+
+    while(elapsedTime < 10000){
+      if(analogRead(A0) <= lightThreshold){
+        Serial.println("Please remove object from sensor 1");
+        somethingAbove[0] = true;
+      }
+      else if(analogRead(A0) > lightThreshold){
+        somethingAbove[0] = false;
+      }
+      else if(analogRead(A1) <= lightThreshold){
+        Serial.println("Please remove object from sensor 2");
+        somethingAbove[1] = true;
+      }
+      else if(analogRead(A1) > lightThreshold){
+        somethingAbove[1] = false;
+      }
+      else if(analogRead(A2) <= lightThreshold){
+        Serial.println("Please remove object from sensor 3");
+        somethingAbove[2] = true;
+      }
+      else if(analogRead(A2) > lightThreshold){
+        somethingAbove[2] = false;
+      }
+      else if(analogRead(A3) <= lightThreshold){
+        Serial.println("Please remove object from sensor 4");
+        somethingAbove[3] = true;
+      }
+      else if(analogRead(A3) > lightThreshold){
+        somethingAbove[3] = false;
+      }
+       elapsedTime = millis() - startTime;    
+    }
+    if(!somethingAbove[0] && !somethingAbove[1] && !somethingAbove[2] && !somethingAbove[3]){break;}
+  }
+
+  for(int i=0;i<4;++i){
+    if(somethingAbove[i]){
+      Serial.print("Light sensor: ");Serial.print(i);Serial.print(" is not working \r\n");  
+    }
+  }
+
+  for(int i=0;i<4;++i){
+    Serial.print("Please, cover light sensor: ");Serial.print(i+1);Serial.print("\r\n");
+
+    int startTime = millis();
+    int elapsedTime = 0;
+    boolean detected = false;
+    while(elapsedTime < 5000){
+      if(i == 0 && analogRead(A0) <= lightThreshold){
+        Serial.println("Light sensor working");
+        detected = true;
+        break;
+      }
+      else if(i == 1 && analogRead(A1) <= lightThreshold){
+        Serial.println("Light sensor working");
+        detected = true;
+        break;
+      }
+      else if(i == 2 &&analogRead(A2) <= lightThreshold){
+        Serial.println("Light sensor working");
+        detected = true;
+        break;
+      }
+      else if(i == 3 && analogRead(A3) <= lightThreshold){
+        Serial.println("Light sensor working");
+        detected = true;
+        break;
+      }
+       elapsedTime = millis() - startTime;    
+    }
+
+    if(detected == false){
+      Serial.println("Failed to detect change in light");    
+    }
+
+  }
+
+  Serial.println("Finished Test");
+}
+
+
+
+void testUltrasoon(){
+  int trigger_pins[8] = {26,28,30,32,34,36,38,40}; 
+  int echo_pins[8] = {2,3,4,5,6,7,8,9}; 
+
+  for(int i=0;i<8;++i){
+    pinMode(trigger_pins[i], OUTPUT);
+    pinMode(echo_pins[i], INPUT);
+  }
+
+
+
+for(int i=0;i<8;++i){
+  Serial.print("Please, put something in front of ultrasoon: ");Serial.print(i);Serial.print("\r\n");
+  int startTime = millis();
+  int elapsedTime = 0;
+  boolean works = false;
+   while(elapsedTime < 5000){
+     digitalWrite(trigger_pins[i], LOW); 
+     delayMicroseconds(2); 
+
+     digitalWrite(trigger_pins[i], HIGH);
+     delayMicroseconds(10); 
+     
+     digitalWrite(trigger_pins[i], LOW);
+     float duration = pulseIn(echo_pins[i], HIGH);
+     
+     float distance = duration/58.2;
+     
+     if (distance >= 200 || distance <= 0){
+       Serial.println("-1");
+     }else{
+        Serial.println("Ultrasoon is working");
+        works = true;
+     }
+
+     delay(50);
+  }
+  if(!works){
+    Serial.println("Test failed, (time run out or sensor is broken)");
+  }
+  
+
+}
+
+  Serial.println("Finished Test");
+}
+#include "system.h"
+
+
+void menuMain(){
+  Serial.println("Self Test Main Menu:");
+  Serial.println("[1] Coffee System");
+  Serial.println("[2] Components");
+
+  Serial.println("Choose an option: ");
+
+  //Wait for input
+  while(1){
+    if(Serial.available()){
+      int choice = Serial.parseInt();
+        switch(choice){
+          case 1: coffeeSystemMenu();
+          case 2: componentMenu();
+          default: break;
+        }
+      break;
+    }
+  }
+
+  
+}
+
+void coffeeSystemMenu(){
+  Serial.println("Self Test Coffee System Menu:");
+  Serial.println("[1] CoffeeMachine");
+  Serial.println("[2] CupDispenser");
+  Serial.println("[3] TurningWheel");
+  Serial.println("[4] DropCatcher");
+  Serial.println("[5] PresetTestAll");
+  Serial.println("[6] Back");
+
+  Serial.println("Choose an option: ");
+
+  //Wait for input
+  while(1){
+    if(Serial.available()){
+      int choice = Serial.parseInt();
+        switch(choice){
+          case 1: testCoffeeMachine();coffeeSystemMenu();
+          case 2: testDispenser();coffeeSystemMenu();
+          case 3: testTurningWheel();coffeeSystemMenu();
+          case 4: coffeeSystemMenu();
+          case 5: testCoffeeMachine();testDispenser();testTurningWheel();testDropCatcher();coffeeSystemMenu();
+          case 6: menuMain();
+          default: coffeeSystemMenu();
+        }
+      break;
+    }
+  }
+
+}
+
+void componentMenu(){
+  Serial.println("Self Test Components Menu:");
+  Serial.println("[1] Actuators");
+//  Serial.println("[2] ArduinoBoard");
+  Serial.println("[3] NFC");
+  Serial.println("[4] Sensors");
+  Serial.println("[5] PresetTestAll");
+  Serial.println("[6] Back");
+
+  Serial.println("Choose an option: ");
+
+  //Wait for input
+  while(1){
+    if(Serial.available()){
+      int choice = Serial.parseInt();
+        switch(choice){
+          case 1: actuatorMenu();
+ //         case 2: arduinoBoardMenu();
+          case 3: nfcMenu();
+          case 4: sensorMenu();
+          case 5: testRelais();testServo();testStepper();actuatorMenu();testNFC();testBattery();testBumperswitch();testLight();testUltrasoon();componentMenu();
+          case 6: menuMain();
+          default: componentMenu();
+        }
+    }
+  }
+}
+
+void actuatorMenu(){
+  Serial.println("Self Test Actuator Menu:");
+  Serial.println("[1] Relais");
+  Serial.println("[2] Servo");
+  Serial.println("[3] Stepper");
+  Serial.println("[4] PresetTestAll");
+  Serial.println("[5] Back");
+
+  Serial.println("Choose an option: ");
+
+  //Wait for input
+  while(1){
+    if(Serial.available()){
+      int choice = Serial.parseInt();
+        switch(choice){
+          case 1: testRelais();actuatorMenu();
+          case 2: testServo();actuatorMenu();
+          case 3: testStepper();actuatorMenu();
+          case 4: testRelais();testServo();testStepper();actuatorMenu();
+          case 5: componentMenu();
+          default: actuatorMenu();
+        }
+    }
+  }
+}
+
+void nfcMenu(){
+  Serial.println("Self Test NFC Menu:");
+  Serial.println("[1] read nfc card");
+  Serial.println("[2] Back");
+
+  Serial.println("Choose an option: ");
+
+  //Wait for input
+  while(1){
+    if(Serial.available()){
+      int choice = Serial.parseInt();
+        switch(choice){
+          case 1: testNFC();nfcMenu();
+          case 2: componentMenu();
+          default: nfcMenu();
+        }
+    }
+  }
+}
+
+void sensorMenu(){
+  Serial.println("Self Test Sensor Menu:");
+  Serial.println("[1] Battery");
+  Serial.println("[2] BumperSwitch");
+  Serial.println("[3] Light");
+  Serial.println("[4] Ultrasoon");
+  Serial.println("[5] PresetTestAll");
+  Serial.println("[6] Back");
+
+  Serial.println("Choose an option: ");
+
+  //Wait for input
+  while(1){
+    if(Serial.available()){
+      int choice = Serial.parseInt();
+        switch(choice){
+          case 1: testBattery();sensorMenu();
+          case 2: testBumperswitch();sensorMenu();
+          case 3: testLight();sensorMenu();
+          case 4: testUltrasoon();sensorMenu();
+          case 5: testBattery();testBumperswitch();testLight();testUltrasoon();sensorMenu();
+          case 6: componentMenu();
+          default: sensorMenu();
+        }
+    }
+  }
+}
+
+void setup(){
+  Serial.begin(115200);
+
+}
+
+
+void loop(){
+  menuMain();
+
+
+
+}

@@ -1,0 +1,5 @@
+De Driver heeft een fault pin die LOW is als de H-bridge uitgeschakeld is door overvoltage of overheating.
+Gebruiken als debugging??
+
+Check de on board potmeter voor current limiting (zie https://www.pololu.com/product/2132)
+

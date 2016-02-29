@@ -1,0 +1,42 @@
+// Written by Pieter van der Gaag
+#include <Servo.h>
+
+Servo servoDispense;  // create servo object to control a servo
+
+void setup() {
+  servoDispense.attach(10);  
+  Serial.begin(9600);
+}
+
+void loop() {
+  DispenseCup();
+
+  while(1);
+}
+
+
+bool DispenseCup(){
+  cupPresent = ReadOpticSensorDispense();
+  
+  if(cupPresent == false){
+    Serial.println("Start dispense 135"); // print next position
+    servoDispense.write(135);                   // sets the servo position to start position
+    delay(1000);                          // waits for the servo to get there
+    Serial.println("45");                 // print next position
+    servoDispense.write(45);                    // sets the servo position to end position            
+    delay(1000);                          // waits for the servo to get there
+    Serial.println("135 end");            // print next position
+    servoDispense.write(135);
+    delay(500);
+    cupPresent = ReadOpticSensorDispense();
+    if (cupPresent == true) {
+      return true;
+      Serial.println("Dispense succeeded");
+    }
+  }
+  else if(cupPresent == true) {
+    Serial.println("Cup present");
+    return false;
+  }
+}
+
